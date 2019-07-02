@@ -6,12 +6,12 @@
 git checkout -b automatic-update origin/master
 
 for file in "$@"; do
-    yq -y . ${file} > ${file}_
-    mv ${file}_ ${file}
+    yq -y . "${file}" > "${file}_"
+    mv "${file}_" "${file}"
 done
 if [ ! -z "$(git status --porcelain)" ]; then 
     git add .
-    git commit -m "formated $@ for yaml"
+    git commit -m "formated working files"
 fi
 
 containerImages=`yq 'if (.kind == "StatefulSet" or .kind == "DaemonSet" or .kind == "Deployment") then .spec.template.spec.containers[].image else empty end' $@ | sort | uniq`

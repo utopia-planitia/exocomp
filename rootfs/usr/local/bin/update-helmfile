@@ -10,11 +10,11 @@ if [ $# -gt 1 ]; then
     file=$1
 fi
 
-yq -y . ${file} > ${file}_
-mv ${file}_ ${file}
+yq -y . "${file}" > "${file}_"
+mv "${file}_" "${file}"
 if [ ! -z "$(git status --porcelain)" ]; then 
     git add .
-    git commit -m "formated ${file} for yaml"
+    git commit -m "formated ${file}"
 fi
 
 helmfile repos
