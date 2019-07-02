@@ -32,8 +32,8 @@ do
         # yq -j . ${file} | jq -f task.jq | yq -y . > ${file}_
         yq -y "walk( if type == \"object\" and .chart == \"$chart\" then .version = \"$version\" else . end)" ${file} > ${file}_
         mv ${file}_ ${file}
-        if test -f ./.exocomp/helmfile-update-hook.sh; then
-            bash ./.exocomp/helmfile-update-hook.sh "$chart" "$oldVersion" "$version"
+        if test -f ./.exocomp/update-hook.sh; then
+            bash ./.exocomp/update-hook.sh helmfile "$chart" "$oldVersion" "$version"
         fi
         git add .
         git commit -m "updated chart $chart from version $oldVersion to $version"

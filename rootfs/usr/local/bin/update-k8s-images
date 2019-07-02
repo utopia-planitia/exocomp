@@ -37,8 +37,8 @@ do
         for file in "$@"; do
             yq -y "walk( if type == \"object\" and .image == \"$imageref\" then .image = \"$image:$version\" else . end)" ${file} > ${file}_
             mv ${file}_ ${file}
-            if test -f ./.exocomp/image-update-hook.sh; then
-                bash ./.exocomp/image-update-hook.sh "$image" "$oldVersion" "$version"
+            if test -f ./.exocomp/update-hook.sh; then
+                bash ./.exocomp/update-hook.sh image "$image" "$oldVersion" "$version"
             fi
         done
         git add .
