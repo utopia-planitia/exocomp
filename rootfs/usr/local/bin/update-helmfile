@@ -1,0 +1,43 @@
+#!/bin/bash
+
+#set -eux #o pipefail
+
+(git checkout automatic-update && git rebase origin/master) || \
+git checkout -b automatic-update origin/master
+
+file="helmfile.yaml"
+if [ $# -gt 1 ]; then
+    file=$1
+fi
+
+yq -y . ${file} > ${file}_
+mv ${file}_ ${file}
+if [ ! -z "$(git status --porcelain)" ]; then 
+    git add .
+    git commit -m "formated ${file} for yaml"
+fi
+
+helmfile repos
+
+charts=`yq '.releases[] | .chart + ":" + .version' ${file} | sort | uniq`
+
+echo "$charts" | while read chart
+do
+    chart=`echo "$chart" | cut -d '"' -f 2` # remove " at the beginning and end
+    oldVersion=`echo $chart | cut -d: -f2`
+    chart=`echo $chart | cut -d: -f1`
+    version=`helm search $chart | tail -n -1 | awk '{print $2}'`
+
+    if [ ! "$version" == "" ] && [ ! "$oldVersion" == "$version"  ]; then
+        # yq -j . ${file} | jq -f task.jq | yq -y . > ${file}_
+        yq -y "walk( if type == \"object\" and .chart == \"$chart\" then .version = \"$version\" else . end)" ${file} > ${file}_
+        mv ${file}_ ${file}
+        if test -f ./.exocomp/helmfile-update-hook.sh; then
+            bash ./.exocomp/helmfile-update-hook.sh "$chart" "$oldVersion" "$version"
+        fi
+        git add .
+        git commit -m "updated chart $chart from version $oldVersion to $version"
+    fi
+done
+
+git push origin automatic-update --force-with-lease
