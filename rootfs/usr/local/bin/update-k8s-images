@@ -35,9 +35,9 @@ do
             if test -f ./.exocomp/image-update-hook.sh; then
                 bash ./.exocomp/image-update-hook.sh "$image" "$oldVersion" "$version"
             fi
-            git add .
-            git commit -m "updated image $image from version $oldVersion to $version"
         done
+        git add .
+        git commit -m "updated image $image from version $oldVersion to $version"
     fi
 done
 
