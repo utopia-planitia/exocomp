@@ -22,15 +22,20 @@ images=`echo "$containerImages $initContainerImages" | sort | uniq`
 echo "$images" | while read imageref
 do
     imageref=`echo "$imageref" | cut -d '"' -f 2` # remove " at the beginning and end
-    image=`echo $imageref | cut -d: -f1`
-    oldVersion=`echo $imageref | cut -d: -f2`
+    if [[ $imageref =~ ":" ]]; then
+        image=`echo $imageref | cut -d: -f1`
+        oldVersion=`echo $imageref | cut -d: -f2`
+    else
+        image=$imageref
+        oldVersion="latest"
+    fi
     reg tags $image | grep -vi alpha | grep -vi beta | grep -vi snapshot | grep -E "^v?(0|[1-9]\d*){1,}\.(0|[1-9]\d*){1,}(\.(0|[1-9]\d*){1,})?(-(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(\+[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*)?$" > /tmp/tags
     version=`cat /tmp/tags | sed 's/v//g' | grep -E "^(0|[1-9]\d*){1,}\.(0|[1-9]\d*){1,}(\.(0|[1-9]\d*){1,})?(-(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(\+[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*)?$" | sort -Vr | head -n 1`
     version=`grep $version /tmp/tags`
     
     if [ ! "$version" == "" ] && [ ! "$oldVersion" == "$version"  ]; then
         for file in "$@"; do
-            yq -y "walk( if type == \"object\" and .image == \"$image:$oldVersion\" then .image = \"$image:$version\" else . end)" ${file} > ${file}_
+            yq -y "walk( if type == \"object\" and .image == \"$imageref\" then .image = \"$image:$version\" else . end)" ${file} > ${file}_
             mv ${file}_ ${file}
             if test -f ./.exocomp/image-update-hook.sh; then
                 bash ./.exocomp/image-update-hook.sh "$image" "$oldVersion" "$version"
