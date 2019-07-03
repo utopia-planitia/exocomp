@@ -14,10 +14,7 @@ if [ ! -z "$(git status --porcelain)" ]; then
     git commit -m "formated working files"
 fi
 
-containerImages=`yq 'if (.kind == "StatefulSet" or .kind == "DaemonSet" or .kind == "Deployment") then .spec.template.spec.containers[].image else empty end' $@ | sort | uniq`
-initContainerImages=`yq 'if (.kind == "StatefulSet" or .kind == "DaemonSet" or .kind == "Deployment") then .spec.template.spec.initContainers[].image else empty end' $@`
-
-images=`echo "$containerImages $initContainerImages" | sort | uniq`
+images=`sort <(yq 'if (.kind == "StatefulSet" or .kind == "DaemonSet" or .kind == "Deployment") then .spec.template.spec.containers[].image else empty end' $@) <(yq 'if (.kind == "StatefulSet" or .kind == "DaemonSet" or .kind == "Deployment") then .spec.template.spec.initContainers[].image else empty end' $@) | uniq`
 
 echo "$images" | while read imageref
 do
