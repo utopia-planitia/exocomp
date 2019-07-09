@@ -26,7 +26,7 @@ do
     chart=`echo "$chart" | cut -d '"' -f 2` # remove " at the beginning and end
     oldVersion=`echo $chart | cut -d: -f2`
     chart=`echo $chart | cut -d: -f1`
-    version=`helm search $chart | tail -n -1 | awk '{print $2}'`
+    version=`helm search $chart -l | awk '{print $2}' | tail -n +2 | grep -vi alpha | grep -vi beta | grep -vi snapshot | head -n 1`
 
     if [ ! "$version" == "" ] && [ ! "$oldVersion" == "$version"  ]; then
         # yq -j . ${file} | jq -f task.jq | yq -y . > ${file}_
