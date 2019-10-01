@@ -21,12 +21,14 @@ RUN curl -L --silent --fail -o /usr/local/bin/jq \
 COPY --from=golang /go/bin/reg /usr/local/bin/reg
 
 # helm
-RUN curl -L --silent --fail https://git.io/get_helm.sh | bash && \
+RUN curl -L --silent --fail https://get.helm.sh/helm-v2.14.3-linux-amd64.tar.gz | tar -xvz && \
+    mv linux-amd64/helm /usr/local/bin/helm && \
+    rm -r linux-amd64 && \
     helm init --client-only
 
 # helmfile
 RUN curl -L --silent --fail -o /usr/local/bin/helmfile \
-    https://github.com/roboll/helmfile/releases/download/v0.77.0/helmfile_linux_amd64 && \
+    https://github.com/roboll/helmfile/releases/download/v0.85.3/helmfile_linux_amd64 && \
 	chmod +x /usr/local/bin/helmfile
 
 # lab
