@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#set -eux #o pipefail
+set -eu #x #o pipefail
 
 (git checkout automatic-update && git rebase origin/master) || \
 git checkout -b automatic-update origin/master
@@ -44,7 +44,7 @@ do
 done
 
 if ! git diff --exit-code origin/master..automatic-update > /dev/null; then
-    git push origin automatic-update --force
+    git push origin automatic-update --force-with-lease
     if ! lab mr list -l exocomp | grep .; then
         lab mr create --allow-collaboration -l exocomp -m "automated updates" --remove-source-branch
     fi
